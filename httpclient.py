@@ -42,15 +42,7 @@ class HTTPClient(object):
 
     def get_code(self, data):
         header_arr = self.get_headers(data).split("\r\n")
-        code = header_arr[0].split(" ")[1]
-        # print(code)
-        # print(header)
-        # header_arr = header.split("\r\n")
-        # print(header_arr)
-        # for i in range(0, len(code)):
-        #     print(i, ": ", code[i])
-        # print("Code: ", code)
-        return code
+        return int(header_arr[0].split(" ")[1])
 
     def get_headers(self, data):
         return data.split("\r\n\r\n")[0]
@@ -83,26 +75,21 @@ class HTTPClient(object):
         self.connect(host, port)
         payload = f"GET {path} HTTP/1.1\r\nHost: {host}\r\nAccept: */*\r\nConnection: close\r\n\r\n"
         self.sendall(payload)
-        # self.sendall("")
         data = self.recvall(self.socket)
         self.close()
         code = self.get_code(data)
         body = self.get_body(data)
-        # print(msg)
         return HTTPResponse(code, body)
 
     def POST(self, url, args=None):
         code = 500
         body = ""
-        # print(args)
         if args==None:
             args = ""
         else:
             args = up.urlencode(args)
-        print(args)
         host, port, path = self.parseURL(url)
         self.connect(host, port)
-        # return
         content_len = len(args)
         payload = f"POST {path} HTTP/1.1\r\nHost: {host}\r\nContent-Type: application/x-www-form-urlencoded\r\nAccept: */*\r\nContent-Length: {content_len}\r\nConnection: close\r\n\r\n"
         self.sendall(payload+args)
@@ -110,7 +97,6 @@ class HTTPClient(object):
         self.close()
         code = self.get_code(data)
         body = self.get_body(data)
-        print(data)
         return HTTPResponse(code, body)
 
     def command(self, url, command="GET", args=None):
@@ -122,12 +108,10 @@ class HTTPClient(object):
     def parseURL(self, url):
         parsed_url = up.urlparse(url)
         host = parsed_url.hostname
-        scheme = parsed_url.scheme
+        port = parsed_url.port
         path = parsed_url.path
-        if scheme == "http":
+        if port == None:
             port = 80
-        else:
-            port = 443
         if path == "":
             path = "/"
         return host, port, path
